@@ -1,0 +1,41 @@
+{
+  "name": "team-bhp",
+  "version": "1.0.0",
+  "description": "Team-BHP MCP server - India's most trusted car forum extractor",
+  "main": "server.js",
+  "bin": {
+    "team-bhp-mcp": "./server.js"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --check server.js && node --check test.js && node --check test_e2e.js",
+    "test:smoke": "node test.js",
+    "test:e2e": "node test_e2e.js"
+  },
+  "files": [
+    "server.js",
+    "mcp.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "team-bhp",
+    "automotive",
+    "cars"
+  ],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "axios": "^1.18.1",
+    "cheerio": "^1.2.0",
+    "playwright": "^1.61.1",
+    "zod": "^4.4.3"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "team-bhp": {
+      "command": "node",
+      "args": ["server.js"],
+      "description": "Team-BHP forum, news, and car data MCP server"
+    }
+  }
+}

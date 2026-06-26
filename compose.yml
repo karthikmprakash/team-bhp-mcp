@@ -1,0 +1,9 @@
+services:
+  team-bhp-mcp:
+    image: ${TEAM_BHP_MCP_IMAGE:-team-bhp-mcp:local}
+    build:
+      context: .
+    init: true
+    ipc: host
+    stdin_open: true
+    tty: false
