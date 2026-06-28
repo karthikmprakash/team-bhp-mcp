@@ -5,5 +5,7 @@ services:
       context: .
     init: true
     ipc: host
-    stdin_open: true
-    tty: false
+    ports:
+      - "${TEAM_BHP_MCP_PORT:-3000}:3000"
+    environment:
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:?Set MCP_AUTH_TOKEN before starting the HTTP MCP server}

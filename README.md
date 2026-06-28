@@ -1,6 +1,6 @@
 # Team-BHP MCP Server
 
-Team-BHP MCP Server exposes public Team-BHP forum, news, and new-car finder data through the Model Context Protocol (MCP). It runs as a local stdio MCP server and is intended for MCP clients that can spawn a Node.js process.
+Team-BHP MCP Server exposes public Team-BHP forum, news, and new-car finder data through the Model Context Protocol (MCP). It supports local stdio mode for desktop MCP clients and a bearer-protected Streamable HTTP mode for internet-reachable deployments.
 
 ## Features
 
@@ -23,13 +23,19 @@ npm install
 npx playwright install chromium
 ```
 
-Run the server locally:
+Run the local stdio server:
 
 ```bash
 npm start
 ```
 
-The server speaks MCP over stdio, so it is normally started by an MCP client rather than run directly in a terminal.
+Run the HTTP server:
+
+```bash
+MCP_AUTH_TOKEN=change-me npm run start:http
+```
+
+The stdio server is normally started by an MCP client rather than run directly in a terminal. The HTTP server listens on `PORT`, defaulting to `3000`, and exposes MCP at `/mcp`.
 
 ## MCP Client Configuration
 
@@ -76,81 +82,52 @@ Build the image locally:
 docker build -t team-bhp-mcp .
 ```
 
-Run it as an MCP stdio server:
+Run it as an internet-reachable Streamable HTTP MCP server:
 
 ```bash
-docker run --rm -i --init --ipc=host team-bhp-mcp
-```
-
-MCP client configuration for a local Docker image:
-
-```json
-{
-  "mcpServers": {
-    "team-bhp": {
-      "command": "docker",
-      "args": ["run", "--rm", "-i", "--init", "--ipc=host", "team-bhp-mcp"],
-      "description": "Team-BHP forum, news, and car data MCP server"
-    }
-  }
-}
+docker run --rm --init --ipc=host -p 3000:3000 -e MCP_AUTH_TOKEN=change-me team-bhp-mcp
 ```
 
 Released images are published to GitHub Container Registry:
 
 ```bash
 docker pull ghcr.io/karthikmprakash/team-bhp-mcp:latest
-docker run --rm -i --init --ipc=host ghcr.io/karthikmprakash/team-bhp-mcp:latest
+docker run --rm --init --ipc=host -p 3000:3000 -e MCP_AUTH_TOKEN=change-me ghcr.io/karthikmprakash/team-bhp-mcp:latest
 ```
 
-MCP client configuration for GHCR:
+Your remote MCP URL is:
 
-```json
-{
-  "mcpServers": {
-    "team-bhp": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "--init",
-        "--ipc=host",
-        "ghcr.io/karthikmprakash/team-bhp-mcp:latest"
-      ],
-      "description": "Team-BHP forum, news, and car data MCP server"
-    }
-  }
-}
+```bash
+http://localhost:3000/mcp
+```
+
+For an internet deployment behind TLS, use:
+
+```bash
+https://your-domain.example/mcp
+```
+
+Configure your remote MCP client to send:
+
+```http
+Authorization: Bearer change-me
 ```
 
 ## Docker Compose
 
-Build and run the local image with Compose:
+Build and run the HTTP server with Compose:
 
 ```bash
-docker compose run --rm team-bhp-mcp
+MCP_AUTH_TOKEN=change-me docker compose up --build
 ```
 
 Use the published GHCR image instead of building locally:
 
 ```bash
-TEAM_BHP_MCP_IMAGE=ghcr.io/karthikmprakash/team-bhp-mcp:latest docker compose run --rm --no-build team-bhp-mcp
+MCP_AUTH_TOKEN=change-me TEAM_BHP_MCP_IMAGE=ghcr.io/karthikmprakash/team-bhp-mcp:latest docker compose up --no-build
 ```
 
-MCP client configuration with Compose:
-
-```json
-{
-  "mcpServers": {
-    "team-bhp": {
-      "command": "docker",
-      "args": ["compose", "run", "--rm", "team-bhp-mcp"],
-      "description": "Team-BHP forum, news, and car data MCP server"
-    }
-  }
-}
-```
+Compose publishes the HTTP server on `http://localhost:3000/mcp` by default. Override the host port with `TEAM_BHP_MCP_PORT`.
 
 ## Testing
 
@@ -158,6 +135,12 @@ Run the default deterministic checks:
 
 ```bash
 npm test
+```
+
+Run the HTTP health/auth smoke test:
+
+```bash
+npm run test:http
 ```
 
 Run the networked parser smoke test:

@@ -1,6 +1,6 @@
 {
   "name": "team-bhp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Team-BHP MCP server - India's most trusted car forum extractor",
   "main": "server.js",
   "bin": {
@@ -8,12 +8,17 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node --check server.js && node --check test.js && node --check test_e2e.js",
+    "start:http": "node server-http.js",
+    "test": "npm run test:syntax",
+    "test:syntax": "node --check server.js && node --check server-http.js && node --check src/team-bhp-server.js && node --check src/app/create-server.js && node --check src/app/tool-result.js && node --check src/config/constants.js && node --check src/config/http.js && node --check src/infra/browser.js && node --check src/infra/cache.js && node --check src/infra/fetch.js && node --check src/parsers/forum.js && node --check src/parsers/news.js && node --check src/parsers/cars.js && node --check src/parsers/search.js && node --check src/tools/index.js && node --check src/tools/forum.js && node --check src/tools/news.js && node --check src/tools/search.js && node --check src/tools/cars.js && node --check test.js && node --check test_e2e.js && node --check test_http.js",
+    "test:http": "node test_http.js",
     "test:smoke": "node test.js",
     "test:e2e": "node test_e2e.js"
   },
   "files": [
     "server.js",
+    "server-http.js",
+    "src/",
     "mcp.json",
     "README.md",
     "LICENSE"
@@ -35,6 +40,7 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "axios": "^1.18.1",
     "cheerio": "^1.2.0",
+    "express": "^5.2.1",
     "playwright": "^1.61.1",
     "zod": "^4.4.3"
   }
