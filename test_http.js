@@ -4,6 +4,7 @@ const { spawn } = require('child_process');
 
 const PORT = 32123;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+const TOKEN = 'test-token';
 
 function waitForServer(proc) {
   return new Promise((resolve, reject) => {
@@ -31,7 +32,7 @@ async function main() {
       ...process.env,
       HOST: '127.0.0.1',
       PORT: String(PORT),
-      MCP_AUTH_TOKEN: 'test-token',
+      MCP_AUTH_TOKEN: TOKEN,
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -53,10 +54,61 @@ async function main() {
       throw new Error(`Expected unauthenticated /mcp 401, got ${unauthenticated.status}`);
     }
 
+    const initialized = await mcpPost({
+      jsonrpc: '2.0',
+      method: 'notifications/initialized',
+    });
+    if (initialized.status >= 500) {
+      throw new Error(`Expected initialized notification below 500, got ${initialized.status}`);
+    }
+
+    const tools = await mcpPost({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'tools/list',
+      params: {},
+    });
+    if (tools.status !== 200) {
+      throw new Error(`Expected authorized tools/list 200, got ${tools.status}`);
+    }
+
+    const payload = parseMcpResponse(tools.text);
+    const toolCount = payload?.result?.tools?.length || 0;
+    if (toolCount === 0) {
+      throw new Error('Expected tools/list to return registered tools');
+    }
+
     console.log('HTTP smoke test passed');
   } finally {
     proc.kill('SIGTERM');
   }
+}
+
+async function mcpPost(body) {
+  const response = await fetch(`${BASE_URL}/mcp`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      accept: 'application/json, text/event-stream',
+      authorization: `Bearer ${TOKEN}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  return { status: response.status, text: await response.text() };
+}
+
+function parseMcpResponse(text) {
+  if (text.startsWith('event:')) {
+    const data = text
+      .split('\n')
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice(5).trim())
+      .join('\n');
+    return data ? JSON.parse(data) : null;
+  }
+
+  return text ? JSON.parse(text) : null;
 }
 
 main().catch((err) => {

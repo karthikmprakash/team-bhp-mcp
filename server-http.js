@@ -27,12 +27,6 @@ function requireBearerToken(req, res, next) {
 
 async function main() {
   const app = express();
-  const mcpServer = createTeamBhpServer();
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-  });
-
-  await mcpServer.connect(transport);
 
   app.get('/healthz', (_req, res) => {
     res.status(200).json({ ok: true });
@@ -42,7 +36,13 @@ async function main() {
   app.use(MCP_PATH, express.json({ limit: '1mb' }));
 
   app.all(MCP_PATH, async (req, res) => {
+    const mcpServer = createTeamBhpServer();
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+
     try {
+      await mcpServer.connect(transport);
       await transport.handleRequest(req, res, req.body);
     } catch (err) {
       console.error('MCP HTTP request failed:', err);
