@@ -12,8 +12,8 @@ RUN npm ci --omit=dev \
 
 COPY server.js mcp.json README.md LICENSE ./
 
-RUN chown -R node:node /app /ms-playwright
+RUN chown -R pwuser:pwuser /app /ms-playwright
 
-USER node
+USER pwuser
 
 ENTRYPOINT ["node", "server.js"]
